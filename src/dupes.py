@@ -29,11 +29,16 @@ __version__ = '1.0.0'
 
 import os
 import re
+import sys
 from collections import defaultdict
 from fnmatch import fnmatch
 from itertools import chain
 
 from docopt import docopt
+
+
+def log_stderr(msg):
+    sys.stderr.write("{}\n".format(msg))
 
 
 def test_name_factory(globs, regexs, iregexs):
@@ -92,6 +97,15 @@ def get_duped_filenames(target_dirs, include_patterns, exclude_patterns):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=__version__)
 
+    target_dirs = []
+    for target_dir in arguments['PATH'] or ['.']:
+        if os.path.isdir(target_dir):
+            target_dirs.append(target_dir)
+        else:
+            log_stderr(
+                "WARNING: Argument '{}' is not a directory.".format(target_dir)
+            )
+
     include_patterns = dict(
         globs=arguments['--include'],
         regexs=arguments['--include-re'],
@@ -104,8 +118,9 @@ if __name__ == '__main__':
         iregexs=arguments['--iexclude-re'],
     )
 
-    duped_filenames = get_duped_filenames(arguments['PATH'] or ['.'],
-                                          include_patterns, exclude_patterns)
+    duped_filenames = get_duped_filenames(
+        target_dirs, include_patterns, exclude_patterns
+    )
 
     for filename, dirpaths in duped_filenames.items():
         print(filename)

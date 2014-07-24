@@ -55,7 +55,7 @@ def test_name_factory(globs, regexs, iregexs):
     ))
 
 
-def get_duped_filenames(target_dirs, include_patterns, exclude_patterns):
+def iternames(target_dirs, include_patterns, exclude_patterns):
     test_include_name_f = test_name_factory(**include_patterns)
     test_exclude_name_f = test_name_factory(**exclude_patterns)
 
@@ -68,13 +68,19 @@ def get_duped_filenames(target_dirs, include_patterns, exclude_patterns):
             not test_exclude_name_f(name)
         )
 
-    seen_names = defaultdict(set)
-
     walk_dirs = (os.walk(target) for target in target_dirs)
-    for dirpath, dirnames, filenames in chain.from_iterable(walk_dirs):
+    for dirpath, _, filenames in chain.from_iterable(walk_dirs):
         for filename in filenames:
             if test_name(filename):
-                seen_names[filename].add(dirpath)
+                yield filename, dirpath
+
+
+def get_duped_filenames(target_dirs, include_patterns, exclude_patterns):
+    seen_names = defaultdict(set)
+
+    filename_gen = iternames(target_dirs, include_patterns, exclude_patterns)
+    for filename, dirpath in filename_gen:
+        seen_names[filename].add(dirpath)
 
     return dict(
         (filename, dirpaths)

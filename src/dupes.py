@@ -19,7 +19,6 @@ __version__ = '1.0.0'
 import os
 from collections import defaultdict
 from itertools import chain
-from pprint import pprint
 
 from docopt import docopt
 
@@ -41,4 +40,9 @@ def get_duped_filenames(target_dirs):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=__version__)
-    pprint(get_duped_filenames(arguments['PATH'] or ['.']))
+
+    duped_filenames = get_duped_filenames(arguments['PATH'] or ['.'])
+    for filename, dirpaths in duped_filenames.items():
+        print(filename)
+        for dirpath in dirpaths:
+            print("\t{}".format(os.path.join(dirpath, filename)))

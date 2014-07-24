@@ -1,9 +1,27 @@
 #!/usr/bin/env python3
+"""Find duplicate files
+
+Usage:
+  dupes.py [PATH ...]
+  dupes.py (-h | --help)
+  dupes.py --version
+
+Arguments:
+  PATH          Scan the given directories or current dir if ommitted.
+
+Options:
+  -h --help     Show this screen.
+  --version     Show version.
+"""
+
+__version__ = '1.0.0'
+
 import os
-import sys
 from collections import defaultdict
 from itertools import chain
 from pprint import pprint
+
+from docopt import docopt
 
 
 def get_duped_filenames(target_dirs):
@@ -22,5 +40,5 @@ def get_duped_filenames(target_dirs):
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:] or tuple('.')
-    pprint(get_duped_filenames(args))
+    arguments = docopt(__doc__, version=__version__)
+    pprint(get_duped_filenames(arguments['PATH'] or ['.']))

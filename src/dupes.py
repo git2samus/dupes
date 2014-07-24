@@ -2,22 +2,33 @@
 """Find duplicate files
 
 Usage:
-  dupes.py [PATH ...]
+  dupes.py [-e GLOB]... [-E GLOB]...
+           [-r REGEX]... [-R REGEX]...
+           [PATH ...]
   dupes.py (-h | --help)
   dupes.py --version
 
 Arguments:
-  PATH          Scan the given directories or current dir if ommitted.
+  PATH ...                          Scan the given directories or
+                                    current dir if ommitted.
 
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
+  -e GLOB --exclude=GLOB            Exclude glob pattern from matches.
+  -E GLOB --case-exclude=GLOB       Same but case-sensitive.
+
+  -r REGEX --exclude-re=REGEX       Exclude regex pattern from matches.
+  -R REGEX --case-exclude-re=REGEX  Same but case-sensitive.
+
+  -h --help                         Show this screen.
+  --version                         Show version.
 """
 
 __version__ = '1.0.0'
 
 import os
+import re
 from collections import defaultdict
+from fnmatch import fnmatch, fnmatchcase
 from itertools import chain
 
 from docopt import docopt

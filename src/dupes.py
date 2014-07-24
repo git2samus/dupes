@@ -2,7 +2,7 @@
 """Find duplicate files
 
 Usage:
-  dupes.py [-e GLOB]... [-r REGEX]... [PATH ...]
+  dupes.py [-e GLOB]... [-r REGEX]... [-R REGEX]... [PATH ...]
   dupes.py (-h | --help)
   dupes.py --version
 
@@ -13,6 +13,7 @@ Arguments:
 Options:
   -e GLOB --exclude=GLOB            Exclude glob pattern from matches.
   -r REGEX --exclude-re=REGEX       Exclude regex pattern from matches.
+  -R REGEX --iexclude-re=REGEX      Same but case-insensitive.
 
   -h --help                         Show this screen.
   --version                         Show version.
@@ -29,11 +30,11 @@ from itertools import chain
 from docopt import docopt
 
 
-def exclude_name_factory(exclude_glob=None, exclude_re=None):
+def exclude_name_factory(exclude_glob=None, exclude_re=None, iexclude_re=None):
     if exclude_glob is None:
         exclude_glob = []
 
-    test_e_glob = lambda name: any((
+    test_exclude_glob = lambda name: any((
         fnmatch(name, glob) for glob in exclude_glob
     ))
 
@@ -41,11 +42,21 @@ def exclude_name_factory(exclude_glob=None, exclude_re=None):
         exclude_re = []
     exclude_re = [re.compile(regex) for regex in exclude_re]
 
-    test_e_re = lambda name: any((
+    test_exclude_re = lambda name: any((
         regex.search(name) for regex in exclude_re
     ))
 
-    return lambda name: any((test_e_glob(name), test_e_re(name)))
+    if iexclude_re is None:
+        iexclude_re = []
+    iexclude_re = [re.compile(regex, re.IGNORECASE) for regex in iexclude_re]
+
+    test_iexclude_re = lambda name: any((
+        regex.search(name) for regex in iexclude_re
+    ))
+
+    return lambda name: any((
+        test_exclude_glob(name), test_exclude_re(name), test_iexclude_re(name)
+    ))
 
 
 def get_duped_filenames(target_dirs, **kwargs):
@@ -71,6 +82,7 @@ if __name__ == '__main__':
     kwargs = dict(
         exclude_glob=arguments['--exclude'],
         exclude_re=arguments['--exclude-re'],
+        iexclude_re=arguments['--iexclude-re'],
     )
     duped_filenames = get_duped_filenames(arguments['PATH'] or ['.'], **kwargs)
 
